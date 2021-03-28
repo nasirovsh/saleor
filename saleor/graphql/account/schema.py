@@ -136,7 +136,7 @@ class AccountQueries(graphene.ObjectType):
             description="Filtering options for customers."
         ),
         sort_by=UserSortingInput(description="Sort customers."),
-        description="List of the shop's customers.",
+        description="List of the shop's customers who joined today.",
     )
     this_month_new_customers = FilterInputConnectionField(
         User,
@@ -144,7 +144,7 @@ class AccountQueries(graphene.ObjectType):
             description="Filtering options for customers."
         ),
         sort_by=UserSortingInput(description="Sort customers."),
-        description="List of the shop's customers.",
+        description="List of the shop's customers who joined this month.",
     )
     this_year_new_customers = FilterInputConnectionField(
         User,
@@ -152,7 +152,7 @@ class AccountQueries(graphene.ObjectType):
             description="Filtering options for customers."
         ),
         sort_by=UserSortingInput(description="Sort customers."),
-        description="List of the shop's customers.",
+        description="List of the shop's customers who joined this year.",
     )
     permission_groups = FilterInputConnectionField(
         Group,
