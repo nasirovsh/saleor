@@ -2051,6 +2051,12 @@ type GiftCardActivate {
   giftCardErrors: [GiftCardError!]!
 }
 
+type GiftCardChangeOwner {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  giftCard: GiftCard
+  giftCardErrors: [GiftCardError!]!
+}
+
 type GiftCardCountableConnection {
   pageInfo: PageInfo!
   edges: [GiftCardCountableEdge!]!
@@ -2095,6 +2101,10 @@ enum GiftCardErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+}
+
+input GiftCardOwnerInput {
+  userEmail: String
 }
 
 type GiftCardUpdate {
@@ -2752,6 +2762,7 @@ type Mutation {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
+  giftCardChangeOwner(id: ID!, input: GiftCardOwnerInput!): GiftCardChangeOwner
   pluginUpdate(id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete

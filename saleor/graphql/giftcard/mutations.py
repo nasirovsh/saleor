@@ -10,7 +10,11 @@ from ...core.utils.promo_code import (
 )
 from ...giftcard import models
 from ...giftcard.error_codes import GiftCardErrorCode
-from ...giftcard.utils import activate_gift_card, deactivate_gift_card
+from ...giftcard.utils import (
+    activate_gift_card,
+    deactivate_gift_card,
+    change_owner_of_gift_card,
+)
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import GiftCardError
@@ -27,12 +31,15 @@ class GiftCardUpdateInput(graphene.InputObjectType):
     )
     balance = PositiveDecimal(description="Value of the gift card.")
     user_email = graphene.String(
-        required=False, description="The customer's email of the gift card buyer."
+        required=False,
+        description="The customer's email of the gift card buyer.",
     )
 
 
 class GiftCardCreateInput(GiftCardUpdateInput):
-    code = graphene.String(required=False, description="Code to use the gift card.")
+    code = graphene.String(
+        required=False, description="Code to use the gift card."
+    )
 
 
 class GiftCardCreate(ModelMutation):
@@ -85,7 +92,9 @@ class GiftCardCreate(ModelMutation):
 
 class GiftCardUpdate(GiftCardCreate):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a gift card to update.")
+        id = graphene.ID(
+            required=True, description="ID of a gift card to update."
+        )
         input = GiftCardUpdateInput(
             required=True, description="Fields required to update a gift card."
         )
@@ -99,10 +108,14 @@ class GiftCardUpdate(GiftCardCreate):
 
 
 class GiftCardDeactivate(BaseMutation):
-    gift_card = graphene.Field(GiftCard, description="A gift card to deactivate.")
+    gift_card = graphene.Field(
+        GiftCard, description="A gift card to deactivate."
+    )
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a gift card to deactivate.")
+        id = graphene.ID(
+            required=True, description="ID of a gift card to deactivate."
+        )
 
     class Meta:
         description = "Deactivate a gift card."
@@ -124,7 +137,9 @@ class GiftCardActivate(BaseMutation):
     gift_card = graphene.Field(GiftCard, description="A gift card to activate.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a gift card to activate.")
+        id = graphene.ID(
+            required=True, description="ID of a gift card to activate."
+        )
 
     class Meta:
         description = "Activate a gift card."
@@ -139,4 +154,61 @@ class GiftCardActivate(BaseMutation):
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
         activate_gift_card(gift_card)
+        return GiftCardActivate(gift_card=gift_card)
+
+
+class GiftCardOwnerInput(graphene.InputObjectType):
+    user_email = graphene.String(
+        required=False,
+        description="Email of the gift card's new owner.",
+    )
+
+class GiftCardChangeOwner(BaseMutation):
+    gift_card = graphene.Field(
+        GiftCard, description="A gift card to change the owner."
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="ID of a gift card to change the owner."
+        )
+        input = GiftCardOwnerInput(
+            required=True, description="Fields required to update a gift card."
+        )
+
+    class Meta:
+        description = "Change a gift card."
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+        user_email = data.get("user_email", None)
+        if user_email:
+            try:
+                cleaned_input["user"] = User.objects.get(email=user_email)
+            except ObjectDoesNotExist:
+                raise ValidationError(
+                    {
+                        "email": ValidationError(
+                            "Customer with this email doesn't exist.",
+                            code=GiftCardErrorCode.NOT_FOUND,
+                        )
+                    }
+                )
+        return cleaned_input
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        gift_card_id = data.get("id")
+        gift_card = cls.get_node_or_error(
+            info, gift_card_id, field="gift_card_id", only_type=GiftCard
+        )
+        new_owner_id = data.get("user")
+        new_owner = cls.get_node_or_error(
+            info, new_owner_id, field="user_id", only_type=User
+        )
+        change_owner_of_gift_card(gift_card, new_owner)
         return GiftCardActivate(gift_card=gift_card)
