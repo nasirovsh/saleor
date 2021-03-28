@@ -146,7 +146,7 @@ class AccountQueries(graphene.ObjectType):
         sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers.",
     )
-    todays_this_year_new_customers = FilterInputConnectionField(
+    this_year_new_customers = FilterInputConnectionField(
         User,
         filter=CustomerFilterInput(
             description="Filtering options for customers."
