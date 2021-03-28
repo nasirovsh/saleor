@@ -71,6 +71,7 @@ from .resolvers import (
     resolve_address,
     resolve_address_validation_rules,
     resolve_customers,
+    resolve_todays_new_customers,
     resolve_permission_groups,
     resolve_staff_users,
     resolve_user,
@@ -104,9 +105,12 @@ class AccountQueries(graphene.ObjectType):
             required=True,
         ),
         country_area=graphene.Argument(
-            graphene.String, description="Designation of a region, province or state."
+            graphene.String,
+            description="Designation of a region, province or state.",
         ),
-        city=graphene.Argument(graphene.String, description="City or a town name."),
+        city=graphene.Argument(
+            graphene.String, description="City or a town name."
+        ),
         city_area=graphene.Argument(
             graphene.String, description="Sublocality like a district."
         ),
@@ -120,7 +124,33 @@ class AccountQueries(graphene.ObjectType):
     )
     customers = FilterInputConnectionField(
         User,
-        filter=CustomerFilterInput(description="Filtering options for customers."),
+        filter=CustomerFilterInput(
+            description="Filtering options for customers."
+        ),
+        sort_by=UserSortingInput(description="Sort customers."),
+        description="List of the shop's customers.",
+    )
+    todays_new_customers = FilterInputConnectionField(
+        User,
+        filter=CustomerFilterInput(
+            description="Filtering options for customers."
+        ),
+        sort_by=UserSortingInput(description="Sort customers."),
+        description="List of the shop's customers.",
+    )
+    this_month_new_customers = FilterInputConnectionField(
+        User,
+        filter=CustomerFilterInput(
+            description="Filtering options for customers."
+        ),
+        sort_by=UserSortingInput(description="Sort customers."),
+        description="List of the shop's customers.",
+    )
+    todays_this_year_new_customers = FilterInputConnectionField(
+        User,
+        filter=CustomerFilterInput(
+            description="Filtering options for customers."
+        ),
         sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers.",
     )
@@ -129,7 +159,9 @@ class AccountQueries(graphene.ObjectType):
         filter=PermissionGroupFilterInput(
             description="Filtering options for permission groups."
         ),
-        sort_by=PermissionGroupSortingInput(description="Sort permission groups."),
+        sort_by=PermissionGroupSortingInput(
+            description="Sort permission groups."
+        ),
         description="List of permission groups.",
     )
     permission_group = graphene.Field(
@@ -196,6 +228,10 @@ class AccountQueries(graphene.ObjectType):
     @permission_required(AccountPermissions.MANAGE_USERS)
     def resolve_customers(self, info, query=None, **kwargs):
         return resolve_customers(info, query=query, **kwargs)
+
+    @permission_required(AccountPermissions.MANAGE_USERS)
+    def resolve_todays_new_customers(self, info, **kwargs):
+        return resolve_todays_new_customers(info, **kwargs)
 
     @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_permission_groups(self, info, query=None, **kwargs):

@@ -37,6 +37,29 @@ def resolve_customers(info, query, **_kwargs):
     )
     return qs.distinct()
 
+def resolve_todays_new_customers(info, **_kwargs):
+    from django.utils import timezone
+    today = timezone.datetime.today()
+    qs = models.User.objects.customers().filter(date_joined__year=today.year,
+                                                date_joined__month=today.month,
+                                                date_joined__day=today.day)
+
+    return qs.distinct()
+
+def resolve_this_month_new_customers(info, **_kwargs):
+    from django.utils import timezone
+    today = timezone.datetime.today()
+    qs = models.User.objects.customers().filter(date_joined__year=today.year,
+                                                date_joined__month=today.month)
+
+    return qs.distinct()
+
+def resolve_this_year_new_customers(info, **_kwargs):
+    from django.utils import timezone
+    today = timezone.datetime.today()
+    qs = models.User.objects.customers().filter(date_joined__year=today.year)
+
+    return qs.distinct()
 
 def resolve_permission_groups(info, **_kwargs):
     return auth_models.Group.objects.all()
